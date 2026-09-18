@@ -122,7 +122,7 @@ mod tests {
     // timestamps are stored in SandboxStatus. Legacy payloads decode with
     // Unspecified (treated as Never), zero count, and absent timestamps.
     const PUBLIC_RPC_SCHEMA_SHA256: &str =
-        "PLACEHOLDER_RECOMPUTE_AFTER_REBASE";
+        "a403537ddf974f3f412b47a92741cbb6bc481d9eb70d103374eba95955a3e43c";
     const DURABLE_SCHEMA_SHA256: &str =
         "517561b578c88d28ffd74d128faf668e65aef03c784dd794aeb5208e1dbf6de3";
     const PUBLIC_DURABLE_OVERLAP_SHA256: &str =
@@ -589,7 +589,7 @@ mod tests {
                 overlap_hash.as_str(),
             ),
             (
-                (308, 26),
+                (305, 26),
                 (92, 20),
                 (80, 20),
                 PUBLIC_RPC_SCHEMA_SHA256,
