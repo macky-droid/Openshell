@@ -23,6 +23,17 @@ fn unique_suffix() -> String {
     format!("{}-{millis}", std::process::id())
 }
 
+fn credential_sandbox_name(suffix: &str) -> String {
+    // The Kubernetes driver prefixes sandbox names when it creates companion
+    // resources, and therefore limits the original sandbox name to 19 bytes.
+    // `unique_suffix` is ASCII (PID and epoch milliseconds), so retaining its
+    // final eight bytes keeps names distinct across normal e2e runs while
+    // leaving ample room for the driver's prefix.
+    let timestamp = suffix.rsplit_once('-').map_or(suffix, |(_, timestamp)| timestamp);
+    let start = timestamp.len().saturating_sub(8);
+    format!("cs-{}", &timestamp[start..])
+}
+
 fn namespace() -> String {
     std::env::var("OPENSHELL_E2E_SANDBOX_NAMESPACE").unwrap_or_else(|_| "openshell".to_string())
 }
@@ -383,9 +394,13 @@ async fn provider_credentials_are_stored_in_configured_backend() {
 
     let driver = credential_driver();
     let suffix = unique_suffix();
-    let driver_slug = driver.replace('-', "");
+    let driver_slug = match driver.as_str() {
+        "kubernetes-secrets" => "k8s",
+        "vault" => "vault",
+        _ => "driver",
+    };
     let provider_name = format!("cred-storage-{driver_slug}-{suffix}");
-    let sandbox_name = format!("cred-storage-sandbox-{driver_slug}-{suffix}");
+    let sandbox_name = credential_sandbox_name(&suffix);
     let secret_value = format!("example-e2e-{driver_slug}-{suffix}");
 
     delete_provider(&provider_name).await;
@@ -410,4 +425,11 @@ async fn provider_credentials_are_stored_in_configured_backend() {
     assert_backend_deleted(&driver, &identity, &provider_name)
         .await
         .expect("credential backend object should be deleted with provider");
+}
+
+#[test]
+fn credential_sandbox_name_fits_the_kubernetes_driver_limit() {
+    let name = credential_sandbox_name("12345-1234567890123456789");
+    assert_eq!(name, "cs-23456789");
+    assert!(name.len() <= 19);
 }
