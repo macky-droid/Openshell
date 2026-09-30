@@ -270,6 +270,9 @@ server:
     endpoint: ""
     # -- Gateway OpenTelemetry service name. Empty uses openshell-gateway.
     serviceName: ""
+    # -- Select all traces or API request trees; background endpoints are documented
+    # in the gateway configuration reference.
+    tracesFilter: all
   # Gateway-native OCSF JSONL output.
   ocsfLog:
     # -- Write gateway OCSF events as JSONL.
